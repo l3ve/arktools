@@ -1,0 +1,41 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/schema.json",
+  "build": {
+    "beforeDevCommand": "yarn dev",
+    "beforeBuildCommand": "yarn build",
+    "devPath": "http://localhost:3333",
+    "distDir": "../dist",
+    "withGlobalTauri": true
+  },
+  "package": {
+    "productName": "ArkTools",
+    "version": "0.0.1"
+  },
+  "tauri": {
+    "macOSPrivateApi": true,
+    "systemTray": {
+      "iconPath": "icons/ArkTools.png"
+    },
+    "allowlist": {
+      "all": false,
+      "shell": {
+        "all": false,
+        "open": true
+      }
+    },
+    "bundle": {
+      "active": true,
+      "targets": "all",
+      "identifier": "com.tauri.arktools",
+      "icon": [
+        "icons/ArkTools.png",
+        "icons/ArkTools.icns",
+        "icons/ArkTools.ico"
+      ]
+    },
+    "security": {
+      "csp": null
+    },
+    "windows": []
+  }
+}
