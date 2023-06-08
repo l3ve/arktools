@@ -1,6 +1,5 @@
 use std::{fs::File, io::Read};
 use tauri::{
-    async_runtime::spawn,
     generate_context,
     ActivationPolicy::Accessory,
     Manager, RunEvent,
@@ -8,40 +7,19 @@ use tauri::{
     WindowBuilder, WindowEvent, WindowUrl,
 };
 mod menu;
-use arboard::Clipboard;
 use livesplit_hotkey::{Hook, Hotkey, KeyCode, Modifiers};
-use tokio::time::{sleep, Duration};
 
 #[tauri::command]
 fn get_clipboard() -> String {
-    let mut clipboard = Clipboard::new().unwrap();
-    println!("Clipboard text was: {}", clipboard.get_text().unwrap());
-    return clipboard.get_text().unwrap();
+    return "ss".to_string();
 }
-
 fn main() {
-    let hook = Hook::new().unwrap();
-    hook.register(
-        Hotkey {
-            key_code: KeyCode::KeyC,
-            modifiers: Modifiers::META,
-        },
-        || {
-            spawn(async {
-                sleep(Duration::from_secs(1)).await;
-                let mut clipboard = Clipboard::new().unwrap();
-                println!("Clipboard text was: {}", clipboard.get_text().unwrap());
-            });
-        },
-    )
-    .unwrap();
-
-    tauri::Builder::default()
+    let app = tauri::Builder::default()
         .setup(|app| {
             WindowBuilder::new(app, "main", WindowUrl::App("http://localhost:3333/".into()))
                 .inner_size(300.0, 500.0)
                 .decorations(false)
-                .visible(false)
+                .visible(true)
                 .always_on_top(true)
                 .transparent(true)
                 .resizable(false)
@@ -50,7 +28,7 @@ fn main() {
                 .unwrap();
 
             app.set_activation_policy(Accessory);
-            // app.get_window("main").unwrap().open_devtools();
+            app.get_window("main").unwrap().open_devtools();
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![get_clipboard])
@@ -66,10 +44,7 @@ fn main() {
                 "quit" => {
                     std::process::exit(0);
                 }
-                "time" => {
-                    let mut clipboard = Clipboard::new().unwrap();
-                    println!("Clipboard text was: {}", clipboard.get_text().unwrap());
-                }
+                "time" => {}
                 "copy" => {
                     let window = app.get_window("main").unwrap();
                     window.show().unwrap();
@@ -87,19 +62,37 @@ fn main() {
             }
             WindowEvent::Focused(focused) => {
                 if !focused {
-                    event.window().hide().unwrap();
+                    // event.window().hide().unwrap();
                 }
             }
             _ => {}
         })
         .build(generate_context!())
-        .expect("error while running tauri application")
-        .run(|_app_handle, event| match event {
-            RunEvent::ExitRequested { api, .. } => {
-                api.prevent_exit();
-            }
-            _ => {}
-        });
+        .expect("error while running tauri application");
+
+    // 全局监听键盘事件
+    let app_handle = app.app_handle();
+    let hook = Hook::new().unwrap();
+    hook.register(
+        Hotkey {
+            key_code: KeyCode::KeyC,
+            modifiers: Modifiers::META,
+        },
+        move || {
+            let window = app_handle.get_window("main").unwrap();
+            window.eval("emit('clipboard-change')").unwrap();
+        },
+    )
+    .unwrap();
+    app.run(|_app_handle, event| match event {
+        RunEvent::ExitRequested { api, .. } => {
+            api.prevent_exit();
+        }
+        RunEvent::Ready => {
+            println!("ArkTools Ready!");
+        }
+        _ => {}
+    });
 }
 
 fn _get_js_content(file_path: &str) -> String {

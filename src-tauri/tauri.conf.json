@@ -17,9 +17,13 @@
       "iconPath": "icons/ArkTools.png"
     },
     "allowlist": {
-      "all": false,
+      "notification": {
+        "all": true
+      },
+      "clipboard": {
+        "all": true
+      },
       "shell": {
-        "all": false,
         "open": true
       }
     },
