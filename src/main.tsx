@@ -11,30 +11,45 @@ import {
 } from "@tauri-apps/api/notification";
 // @ts-ignore
 window.emit = emit;
-import { delay, limitTxt, genID } from "./utils";
+import { delay, genID } from "./utils";
 import { globalCSS, resetCSS } from "./global-styles";
 import {
+  Container,
   Title,
   SrcollBox,
+  SrcollPlaceholder,
   Item,
   Txt,
   FunBox,
   DelBtn,
   TopBtn,
+  SaveBtn,
+  Line,
 } from "./component";
 
+type TxtItem = {
+  isSave: boolean;
+  text: string;
+  id: string;
+}[];
+
 function ArkTools() {
-  let [dataList, setDataList] = useState<
+  let [dataList, setDataList] = useState<TxtItem>([
+    { isSave: true, text: "1111111111", id: "13fkefi3f" },
     {
-      isSave: boolean;
-      text: string;
-      id: string;
-    }[]
-  >([{ isSave: false, text: "123123123123", id: "13fkefi3f" }]);
-  async function get_clipboard() {
-    let v = await invoke<string>("get_clipboard");
-    console.log("v", v);
-  }
+      isSave: false,
+      text: "一二三四五六七八九十一二三四五六七八九十",
+      id: "232fwfw",
+    },
+    { isSave: false, text: "4444433333", id: "13fkffawefi3f" },
+    { isSave: true, text: "feefafaeg", id: "13fkf3refi3f" },
+    { isSave: false, text: "1231gegefa23123123", id: "13fkg4gdsdqefi3f" },
+    {
+      isSave: true,
+      text: "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678",
+      id: "13fk123123efi3f",
+    },
+  ]);
 
   useEffect(() => {
     let unlisten = () => {};
@@ -64,11 +79,15 @@ function ArkTools() {
       permissionGranted = permission === "granted";
     }
     if (permissionGranted) {
-      sendNotification(`已复制：${limitTxt(txt)}`);
+      sendNotification(`已复制：${txt}`);
     }
   }
 
-  function deleteItem(e: React.MouseEvent<HTMLDivElement>, id: string) {
+  async function handle(
+    e: React.MouseEvent<HTMLDivElement>,
+    type: "top" | "delete" | "save",
+    id: string
+  ) {
     e.stopPropagation();
     let i = dataList.findIndex((item) => {
       return item.id === id;
@@ -76,43 +95,95 @@ function ArkTools() {
     if (i === -1) {
       return;
     }
-    let newData = dataList.slice(0, i).concat(dataList.slice(i + 1));
-    setDataList(newData);
-  }
-
-  function topItem(e: React.MouseEvent<HTMLDivElement>, id: string) {
-    e.stopPropagation();
-    let i = dataList.findIndex((item) => {
-      return item.id === id;
-    });
-    if (i === -1) {
-      return;
+    let newData: TxtItem;
+    if (type === "delete") {
+      newData = dataList.slice(0, i).concat(dataList.slice(i + 1));
     }
-
-    let target = dataList.splice(i, 1);
-    let newData = target.concat(dataList)
-    setDataList(newData);
+    if (type === "top") {
+      let target = dataList.splice(i, 1);
+      newData = target.concat(dataList);
+    }
+    if (type === "save") {
+      let newObj = dataList[i];
+      newObj.isSave = !newObj.isSave;
+      let isSave = newObj.isSave;
+      // await invoke("manage-data", newObj);
+      if (isSave) {
+        newData = [newObj]
+          .concat(dataList.slice(0, i))
+          .concat(dataList.slice(i + 1));
+      } else {
+        newData = [newObj]
+          .concat(dataList.slice(0, i))
+          .concat(dataList.slice(i + 1));
+      }
+    }
+    setDataList(newData!);
   }
-
   return (
     <>
       <Global styles={resetCSS} />
       <Global styles={globalCSS} />
-      <Title>历史记录</Title>
-      <SrcollBox>
-        {dataList.map((item) => {
-          return (
-            <Item onClick={() => setClipboard(item.text)} key={item.id}>
-              <Txt className="txt">{limitTxt(item.text)}</Txt>
-              <FunBox className="fun-box">
-                <TopBtn onClick={(e) => topItem(e, item.id)} />
-                <DelBtn onClick={(e) => deleteItem(e, item.id)} />
-                <TopBtn />
-              </FunBox>
-            </Item>
-          );
-        })}
-      </SrcollBox>
+      <Title data-tauri-drag-region>历史记录</Title>
+      <Container>
+        <SrcollBox>
+          <SrcollPlaceholder>
+            {dataList
+              .filter((item) => {
+                return item.isSave;
+              })
+              .map((item) => {
+                return (
+                  <Item onClick={() => setClipboard(item.text)} key={item.id}>
+                    <Txt className="txt">{item.text}</Txt>
+                    <FunBox className="fun-box">
+                      <TopBtn onClick={(e) => handle(e, "top", item.id)} />
+                      <DelBtn onClick={(e) => handle(e, "delete", item.id)} />
+                      <SaveBtn
+                        onClick={(e) => handle(e, "save", item.id)}
+                        className={item.isSave ? "save" : ""}
+                      >
+                        ☆
+                      </SaveBtn>
+                    </FunBox>
+                  </Item>
+                );
+              })}
+
+            {dataList.filter((item) => {
+              return item.isSave;
+            }).length > 0 &&
+            dataList.filter((item) => {
+              return !item.isSave;
+            }).length > 0 ? (
+              <Line />
+            ) : (
+              <></>
+            )}
+            {dataList
+              .filter((item) => {
+                return !item.isSave;
+              })
+              .map((item) => {
+                return (
+                  <Item onClick={() => setClipboard(item.text)} key={item.id}>
+                    <Txt className="txt">{item.text}</Txt>
+                    <FunBox className="fun-box">
+                      <TopBtn onClick={(e) => handle(e, "top", item.id)} />
+                      <DelBtn onClick={(e) => handle(e, "delete", item.id)} />
+                      <SaveBtn
+                        onClick={(e) => handle(e, "save", item.id)}
+                        className={item.isSave ? "save" : ""}
+                      >
+                        ☆
+                      </SaveBtn>
+                    </FunBox>
+                  </Item>
+                );
+              })}
+          </SrcollPlaceholder>
+        </SrcollBox>
+      </Container>
     </>
   );
 }

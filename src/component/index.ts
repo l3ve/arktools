@@ -1,18 +1,36 @@
 import styled from "@emotion/styled";
 
+const Container = styled.div`
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  padding-top: 50px;
+`;
+
 const Title = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
   height: 40px;
   line-height: 40px;
   text-align: center;
   box-shadow: 0 1px 4px gray;
   font-size: 16px;
-  margin-bottom: 5px;
+  background-color: white;
+  user-select: none;
 `;
 
 const SrcollBox = styled.div`
-  padding: 0 0 10px;
-  overflow: hidden;
-  overflow-y: scroll;
+  overflow-x: hidden;
+  overflow-y: auto;
+`;
+
+const SrcollPlaceholder = styled.div`
+  width: 100vw;
+  padding-bottom: 10px;
 `;
 
 const Item = styled.div`
@@ -30,6 +48,11 @@ const Item = styled.div`
   }
 `;
 
+const Line = styled.div`
+  margin: 10px 45px;
+  border: 1px solid rgba(33, 33, 33, 0.3);
+`;
+
 const Txt = styled.div`
   flex: 1;
   overflow: hidden;
@@ -40,7 +63,7 @@ const Txt = styled.div`
 
 const FunBox = styled.div`
   display: flex;
-  justify-content:space-around;
+  justify-content: space-around;
   align-items: center;
   width: 90px;
   /* translate: 120px; */
@@ -89,14 +112,39 @@ const TopBtn = styled.div`
   }
 
   &::before {
-    left:5px;
+    left: 5px;
     transform: rotate(40deg);
   }
 
   &::after {
-    left:13px;
+    left: 13px;
     transform: rotate(-40deg);
   }
 `;
 
-export { Title, SrcollBox, Item, Txt, FunBox, DelBtn,TopBtn };
+const SaveBtn = styled.div`
+  position: relative;
+  cursor: pointer;
+  color: gray;
+  &.save::after {
+    content: "★";
+    color: blue;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+`;
+
+export {
+  Container,
+  Title,
+  SrcollBox,
+  SrcollPlaceholder,
+  Item,
+  Txt,
+  FunBox,
+  DelBtn,
+  TopBtn,
+  SaveBtn,
+  Line,
+};

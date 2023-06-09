@@ -18,14 +18,12 @@ export const resetCSS = css`
   }
 
   html {
-    height: 100%;
     background: #f2f2f2;
   }
 
   body {
-    height: 100%;
-    overflow: hidden;
     margin: 0;
+    overflow: hidden;
     font-family: system-ui, sans-serif;
   }
 `;
@@ -33,8 +31,9 @@ export const resetCSS = css`
 export const globalCSS = css`
   #container {
     box-sizing: border-box;
-    height: 100%;
     display: flex;
     flex-direction: column;
+    width: 100vw;
+    height: 100vh;
   }
 `;

@@ -17,6 +17,9 @@
       "iconPath": "icons/ArkTools.png"
     },
     "allowlist": {
+      "window": {
+        "startDragging": true
+      },
       "notification": {
         "all": true
       },
