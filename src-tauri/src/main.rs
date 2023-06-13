@@ -9,17 +9,17 @@ use tauri::{
 mod menu;
 use livesplit_hotkey::{Hook, Hotkey, KeyCode, Modifiers};
 
-#[tauri::command]
-fn get_clipboard() -> String {
-    return "ss".to_string();
-}
 fn main() {
+    let html_url = WindowUrl::App("index.html".into());
+    #[cfg(debug_assertions)]
+    let html_url = WindowUrl::App("http://localhost:3333/".into());
+
     let app = tauri::Builder::default()
         .setup(|app| {
-            WindowBuilder::new(app, "main", WindowUrl::App("http://localhost:3333/".into()))
+            WindowBuilder::new(app, "main", html_url)
                 .inner_size(300.0, 500.0)
                 .decorations(false)
-                .visible(true)
+                .visible(false)
                 .always_on_top(true)
                 .transparent(true)
                 .resizable(false)
@@ -28,10 +28,10 @@ fn main() {
                 .unwrap();
 
             app.set_activation_policy(Accessory);
+            #[cfg(debug_assertions)]
             app.get_window("main").unwrap().open_devtools();
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![get_clipboard])
         .system_tray(menu::get_tray_menu())
         .on_system_tray_event(|app, event| match event {
             LeftClick { position, .. } => {
@@ -62,7 +62,7 @@ fn main() {
             }
             WindowEvent::Focused(focused) => {
                 if !focused {
-                    // event.window().hide().unwrap();
+                    event.window().hide().unwrap();
                 }
             }
             _ => {}
