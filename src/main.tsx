@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Global } from "@emotion/react";
-import { invoke } from "@tauri-apps/api/tauri";
 import { readText, writeText } from "@tauri-apps/api/clipboard";
 import { listen, emit } from "@tauri-apps/api/event";
 import {
@@ -11,7 +10,15 @@ import {
 } from "@tauri-apps/api/notification";
 // @ts-ignore
 window.emit = emit;
-import { delay, genID } from "./utils";
+import {
+  delay,
+  genID,
+  TxtItem,
+  addSave,
+  getSave,
+  removeSave,
+  topSave,
+} from "./utils";
 import { globalCSS, resetCSS } from "./global-styles";
 import {
   Container,
@@ -27,29 +34,8 @@ import {
   Line,
 } from "./component";
 
-type TxtItem = {
-  isSave: boolean;
-  text: string;
-  id: string;
-}[];
-
 function ArkTools() {
-  let [dataList, setDataList] = useState<TxtItem>([
-    { isSave: true, text: "1111111111", id: "13fkefi3f" },
-    {
-      isSave: false,
-      text: "一二三四五六七八九十一二三四五六七八九十",
-      id: "232fwfw",
-    },
-    { isSave: false, text: "4444433333", id: "13fkffawefi3f" },
-    { isSave: true, text: "feefafaeg", id: "13fkf3refi3f" },
-    { isSave: false, text: "1231gegefa23123123", id: "13fkg4gdsdqefi3f" },
-    {
-      isSave: true,
-      text: "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678",
-      id: "13fk123123efi3f",
-    },
-  ]);
+  let [dataList, setDataList] = useState<TxtItem>(getSave());
 
   useEffect(() => {
     let unlisten = () => {};
@@ -96,27 +82,27 @@ function ArkTools() {
       return;
     }
     let newData: TxtItem;
+    let target = dataList[i];
     if (type === "delete") {
       newData = dataList.slice(0, i).concat(dataList.slice(i + 1));
+      removeSave(target);
     }
     if (type === "top") {
       let target = dataList.splice(i, 1);
       newData = target.concat(dataList);
+      topSave(target[0]);
     }
     if (type === "save") {
-      let newObj = dataList[i];
-      newObj.isSave = !newObj.isSave;
-      let isSave = newObj.isSave;
-      // await invoke("manage-data", newObj);
+      target.isSave = !target.isSave;
+      let isSave = target.isSave;
       if (isSave) {
-        newData = [newObj]
-          .concat(dataList.slice(0, i))
-          .concat(dataList.slice(i + 1));
+        addSave(target);
       } else {
-        newData = [newObj]
-          .concat(dataList.slice(0, i))
-          .concat(dataList.slice(i + 1));
+        removeSave(target);
       }
+      newData = [target]
+        .concat(dataList.slice(0, i))
+        .concat(dataList.slice(i + 1));
     }
     setDataList(newData!);
   }
